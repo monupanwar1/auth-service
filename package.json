@@ -4,12 +4,17 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon server.ts",
-    "build": "npm run lint && tsc",
+    "dev": "cross-env NODE_ENV=dev nodemon --watch src --ext ts,js,json --legacy-watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "format:fix": "prettier . --write ",
+    "format:check": "prettier . --check",
     "lint": "eslint .",
-    "format": "prettier . --write",
+    "lint:check": "eslint .",
+    "lint:fix": "eslint . --fix",
     "test": "jest --no-cache --coverage --all --runInBand",
-    "test:watch": "jest --watch --runInBand"
+    "test:watch": "jest --watch --runInBand",
+    "prepare": "husky"
   },
   "keywords": [],
   "author": "",
@@ -32,6 +37,12 @@
     "uuid": "^9.0.1",
     "winston": "^3.19.0"
   },
+  "lint-staged": {
+    "*.ts": [
+      "pnpm run format:fix",
+      "pnpm run lint:fix"
+    ]
+  },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/cookie-parser": "^1.4.10",
@@ -43,7 +54,9 @@
     "@types/supertest": "^7.2.0",
     "eslint": "^10.5.0",
     "globals": "^17.6.0",
+    "husky": "^9.1.7",
     "jest": "^30.4.2",
+    "lint-staged": "^17.0.8",
     "nodemon": "^3.1.14",
     "prettier": "^3.8.4",
     "ts-jest": "^29.4.11",

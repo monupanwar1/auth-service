@@ -1,11 +1,9 @@
-import { log } from "node:console";
 import app from "./src/app";
 import { Config } from "./src/config";
 import logger from "./src/config/logger";
 
 const startServer = async () => {
   const PORT = Config.PORT || 5503;
-  
 
   try {
     // await connectDB();
