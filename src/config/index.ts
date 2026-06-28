@@ -5,7 +5,6 @@ config({
   path: path.join(__dirname, `../../.env.${process.env.NODE_ENV || "dev"}`),
 });
 
-
 console.log("NODE_ENV:", process.env.NODE_ENV);
 console.log("DB_HOST:", process.env.DB_HOST);
 console.log("DB_PORT:", process.env.DB_PORT);
