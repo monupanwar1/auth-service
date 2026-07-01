@@ -3,6 +3,7 @@ import { DataSource } from "typeorm";
 import app from "../../src/app";
 import { AppDataSource } from "../../src/config/data-source";
 import { User } from "../../src/entity/User";
+import { Roles } from "../../src/constants";
 
 jest.setTimeout(30000);
 
@@ -11,6 +12,11 @@ describe("Database connection", () => {
 
   beforeAll(async () => {
     connection = await AppDataSource.initialize();
+  });
+
+  afterEach(async () => {
+    const userRepository = connection.getRepository(User);
+    await userRepository.clear();
   });
 
   afterAll(async () => {
@@ -81,6 +87,46 @@ describe("Database connection", () => {
       expect(users[0].lastName).toBe(userData.lastName);
       expect(users[0].email).toBe(userData.email);
     });
+    it("should return id of created user  ", async () => {
+      //Arrange
+      const userData = {
+        firstName: "Kunal",
+        lastName: "Panwar",
+        email: "Kunal@mern.space",
+        password: "superSecret",
+      };
+
+      //Act
+
+      const response = await request(app).post("/auth/register").send(userData);
+
+      //Assert
+      const userRepository = connection.getRepository(User);
+      const users = await userRepository.find();
+      expect(response.body).toHaveProperty("id");
+      expect((response.body as Record<string, string>).id).toBe(users[0].id);
+    });
+    it("should return assign role ", async () => {
+      //Arrange
+      const userData = {
+        firstName: "Kunal",
+        lastName: "Panwar",
+        email: "Kunal@mern.space",
+        password: "superSecret",
+      };
+
+      //Act
+
+      await request(app).post("/auth/register").send(userData);
+
+      //Assert
+      const userRepository = connection.getRepository(User);
+      const users = await userRepository.find();
+      expect(users[0]).toHaveProperty("role");
+      expect(users[0].role).toBe(Roles.Customer);
+
+    })
+      
   });
 });
 

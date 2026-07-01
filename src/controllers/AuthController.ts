@@ -1,7 +1,8 @@
 import { NextFunction, Response } from "express";
 import { Logger } from "winston";
+import { Roles } from "../constants";
 import { UserService } from "../services/UserService";
-import { createUserRequest } from "../types";
+import { RegisterUserRequest } from "../types";
 
 export class AuthController {
   constructor(
@@ -9,7 +10,7 @@ export class AuthController {
     private readonly logger: Logger,
   ) {}
 
-  async register(req: createUserRequest, res: Response, next: NextFunction) {
+  async register(req: RegisterUserRequest, res: Response, next: NextFunction) {
     const { firstName, lastName, email, password } = req.body;
 
     this.logger.debug("New request to register a user", {
@@ -25,6 +26,7 @@ export class AuthController {
         lastName,
         email,
         password,
+        role: Roles.Customer,
       });
 
       this.logger.info("User has been registered", { id: user.id });
