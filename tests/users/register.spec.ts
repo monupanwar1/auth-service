@@ -2,8 +2,8 @@ import request from "supertest";
 import { DataSource } from "typeorm";
 import app from "../../src/app";
 import { AppDataSource } from "../../src/config/data-source";
-import { User } from "../../src/entity/User";
 import { Roles } from "../../src/constants";
+import { User } from "../../src/entity/User";
 
 jest.setTimeout(30000);
 
@@ -124,9 +124,54 @@ describe("Database connection", () => {
       const users = await userRepository.find();
       expect(users[0]).toHaveProperty("role");
       expect(users[0].role).toBe(Roles.Customer);
+    });
 
-    })
-      
+    it("should store the hashed password in the database", async () => {
+      //Arrange
+      const userData = {
+        firstName: "Kunal",
+        lastName: "Panwar",
+        email: "Kunal@mern.space",
+        password: "superSecret",
+      };
+
+      //Act
+      await request(app).post("/auth/register").send(userData);
+
+      //Assert
+      const userRepository = connection.getRepository(User);
+      const users = await userRepository.find({
+        select: {
+          password: true,
+        },
+      });
+      expect(users[0].password).not.toBe(userData.password);
+      expect(users[0].password).toHaveLength(60);
+      expect(users[0].password).toMatch(/^\$2[a|b]\$\d+\$/);
+    });
+
+    it("should return 400 status code if email already exists", async () => {
+      //Arrange
+      const userData = {
+        firstName: "Kunal",
+        lastName: "Panwar",
+        email: "Kunal@mern.space",
+        password: "superSecret",
+      };
+
+      const userRepository = connection.getRepository(User);
+      userRepository.save({ ...userData, role: Roles.Customer });
+
+      //Act
+      const response = await request(app).post("/auth/register").send(userData);
+
+      //Assert
+
+      const users = await userRepository.find();
+
+      expect(response.statusCode).toBe(400);
+      expect(users).toHaveLength(1);
+    });
   });
 });
 
