@@ -1,6 +1,8 @@
 import { NextFunction, Response } from "express";
+import { JwtPayload } from "jsonwebtoken";
 import { Logger } from "winston";
 import { Roles } from "../constants";
+import { TokenService } from "../services/TokenService";
 import { UserService } from "../services/UserService";
 import { RegisterUserRequest } from "../types";
 
@@ -8,6 +10,7 @@ export class AuthController {
   constructor(
     private readonly userService: UserService,
     private readonly logger: Logger,
+    private readonly tokenService: TokenService,
   ) {}
 
   async register(req: RegisterUserRequest, res: Response, next: NextFunction) {
@@ -30,6 +33,25 @@ export class AuthController {
       });
 
       this.logger.info("User has been registered", { id: user.id });
+
+      // payload
+      const payload: JwtPayload = {
+        sub: String(user.id),
+        role: user.role,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+      };
+
+      //access token
+      const accessToken = this.tokenService.generateAccessToken(payload);
+
+      res.cookie("accessToken", accessToken, {
+        sameSite: "strict",
+        maxAge: 1000 * 60 * 60 * 24 * 1,
+        httpOnly: true,
+      });
+
       res.status(201).json({ id: user.id });
     } catch (err) {
       next(err);

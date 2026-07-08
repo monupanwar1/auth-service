@@ -172,6 +172,38 @@ describe("Database connection", () => {
       expect(response.statusCode).toBe(400);
       expect(users).toHaveLength(1);
     });
+
+    it("should return the access token and refresh token inside a cookie", async () => {
+      //Arrange
+      const userData = {
+        firstName: "Kunal",
+        lastName: "Panwar",
+        email: "Kunal@mern.space",
+        password: "superSecret",
+      };
+
+      //Act
+      const response = await request(app).post("/auth/register").send(userData);
+
+      //Assert
+
+      let accessToken = null;
+      // let refreshToken = null;
+
+      interface Headers {
+        ["set-cookie"]?: string[];
+      }
+
+      const cookies = (response.headers as Headers)["set-cookie"] || [];
+
+      cookies.forEach((cookie) => {
+        if (cookie.startsWith("accessToken=")) {
+          accessToken = cookie.split(";")[0].split("=")[1];
+        }
+      });
+
+      expect(accessToken).not.toBeNull();
+    });
   });
 });
 
