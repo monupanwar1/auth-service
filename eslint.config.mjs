@@ -1,5 +1,5 @@
-import globals from "globals";
 import pluginJs from "@eslint/js";
+import globals from "globals";
 import tseslint from "typescript-eslint";
 
 export default [
@@ -8,7 +8,7 @@ export default [
       globals: globals.node,
     },
     rules: {
-      // 'no-unused-vars': 'error',
+      "no-unused-vars": "error",
     },
   },
   pluginJs.configs.recommended,

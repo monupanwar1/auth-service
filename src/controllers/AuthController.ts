@@ -46,9 +46,24 @@ export class AuthController {
       //access token
       const accessToken = this.tokenService.generateAccessToken(payload);
 
+      // Persist the refresh token
+
+      const newRefreshToken = await this.tokenService.persistRefreshToken(user);
+
+      const refreshToken = this.tokenService.generateRefreshToken({
+        ...payload,
+        id: String(newRefreshToken.id),
+      });
+
       res.cookie("accessToken", accessToken, {
         sameSite: "strict",
         maxAge: 1000 * 60 * 60 * 24 * 1,
+        httpOnly: true,
+      });
+
+      res.cookie("refreshToken", refreshToken, {
+        sameSite: "strict",
+        maxAge: 1000 * 60 * 60 * 24 * 365,
         httpOnly: true,
       });
 

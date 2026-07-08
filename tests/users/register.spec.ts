@@ -4,6 +4,7 @@ import app from "../../src/app";
 import { AppDataSource } from "../../src/config/data-source";
 import { Roles } from "../../src/constants";
 import { User } from "../../src/entity/User";
+import { isJwt } from "../utils";
 
 jest.setTimeout(30000);
 
@@ -188,7 +189,7 @@ describe("Database connection", () => {
       //Assert
 
       let accessToken = null;
-      // let refreshToken = null;
+      let refreshToken = null;
 
       interface Headers {
         ["set-cookie"]?: string[];
@@ -200,9 +201,17 @@ describe("Database connection", () => {
         if (cookie.startsWith("accessToken=")) {
           accessToken = cookie.split(";")[0].split("=")[1];
         }
+
+        if (cookie.startsWith("refreshToken=")) {
+          refreshToken = cookie.split(";")[0].split("=")[1];
+        }
       });
 
       expect(accessToken).not.toBeNull();
+      expect(refreshToken).not.toBeNull();
+
+      expect(isJwt(accessToken)).toBeTruthy();
+      expect(isJwt(refreshToken)).toBeTruthy();
     });
   });
 });
