@@ -3,27 +3,27 @@ import { DataSource } from "typeorm";
 import app from "../../src/app";
 import { AppDataSource } from "../../src/config/data-source";
 import { Roles } from "../../src/constants";
+import { RefreshToken } from "../../src/entity/RefreshToken";
 import { User } from "../../src/entity/User";
 import { isJwt } from "../utils";
 
 jest.setTimeout(30000);
 
-describe("Database connection", () => {
+describe("POST /auth/register", () => {
   let connection: DataSource;
 
   beforeAll(async () => {
     connection = await AppDataSource.initialize();
   });
 
-  afterEach(async () => {
-    const userRepository = connection.getRepository(User);
-    await userRepository.clear();
+  beforeEach(async () => {
+    // Database truncate
+    await connection.dropDatabase();
+    await connection.synchronize();
   });
 
   afterAll(async () => {
-    if (connection && connection.isInitialized) {
-      await connection.destroy();
-    }
+    await connection.destroy();
   });
 
   it("should connect to the PostgreSQL database", async () => {
@@ -212,6 +212,32 @@ describe("Database connection", () => {
 
       expect(isJwt(accessToken)).toBeTruthy();
       expect(isJwt(refreshToken)).toBeTruthy();
+    });
+
+    it("should store the refresh token in the database", async () => {
+      //Arrange
+      const userData = {
+        firstName: "Kunal",
+        lastName: "Panwar",
+        email: "Kunal@mern.space",
+        password: "superSecret",
+      };
+
+      //Act
+      const response = await request(app).post("/auth/register").send(userData);
+
+      //Assert
+      const refreshTokenRepo = connection.getRepository(RefreshToken);
+
+      const tokens = await refreshTokenRepo
+        .createQueryBuilder("refreshToken")
+        .leftJoin("refreshToken.user", "user")
+        .where("user.id = :userId", {
+          userId: (response.body as Record<string, string>).id,
+        })
+        .getMany();
+
+      expect(tokens).toHaveLength(1);
     });
   });
 });

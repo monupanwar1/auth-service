@@ -2,7 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  ManyToMany,
+  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
@@ -16,8 +16,10 @@ export class RefreshToken {
   @Column({ type: "timestamp" })
   expiresAt: Date;
 
-  @ManyToMany(() => User)
+  @ManyToOne(() => User)
   user: User;
+
+  // userId
 
   @UpdateDateColumn()
   updateAt: number;
