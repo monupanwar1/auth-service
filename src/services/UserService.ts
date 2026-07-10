@@ -39,4 +39,27 @@ export class UserService {
       throw error;
     }
   }
+
+  async findEmailWithPassword(email: string) {
+    return await this.userRepository.findOne({
+      where: {
+        email,
+      },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        role: true,
+        password: true,
+      },
+    });
+  }
+  async findById(id: number) {
+    return await this.userRepository.findOne({
+      where: {
+        id,
+      },
+    });
+  }
 }

@@ -1,17 +1,20 @@
 import { NextFunction, Response } from "express";
 import { validationResult } from "express-validator";
+import createHttpError from "http-errors";
 import { JwtPayload } from "jsonwebtoken";
 import { Logger } from "winston";
 import { Roles } from "../constants";
 import { TokenService } from "../services/TokenService";
 import { UserService } from "../services/UserService";
-import { RegisterUserRequest } from "../types";
+import { AuthRequest, RegisterUserRequest } from "../types";
+import { CredentialService } from "./../services/CredentialService";
 
 export class AuthController {
   constructor(
     private readonly userService: UserService,
     private readonly logger: Logger,
     private readonly tokenService: TokenService,
+    private readonly credentialService: CredentialService,
   ) {}
 
   async register(req: RegisterUserRequest, res: Response, next: NextFunction) {
@@ -78,5 +81,86 @@ export class AuthController {
     } catch (err) {
       next(err);
     }
+  }
+
+  async login(req: RegisterUserRequest, res: Response, next: NextFunction) {
+    // validation
+    const result = validationResult(req);
+    if (!result.isEmpty()) {
+      return res.status(400).json({ errors: result.array() });
+    }
+
+    const { email, password } = req.body;
+
+    this.logger.debug("New request to login a user", {
+      email,
+      password: "******",
+    });
+
+    try {
+      const user = await this.userService.findEmailWithPassword(email);
+
+      if (!user) {
+        const error = createHttpError(400, "Email or password does not match");
+        next(error);
+        return;
+      }
+
+      const passwordMatch = await this.credentialService.comparePassword(
+        password,
+        user.password,
+      );
+
+      if (!passwordMatch) {
+        const error = createHttpError(400, "Email or password does not match");
+        next(error);
+        return;
+      }
+
+      // payload
+      const payload: JwtPayload = {
+        sub: String(user.id),
+        role: user.role,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+      };
+
+      //access token
+      const accessToken = this.tokenService.generateAccessToken(payload);
+
+      // Persist the refresh token
+
+      const newRefreshToken = await this.tokenService.persistRefreshToken(user);
+
+      const refreshToken = this.tokenService.generateRefreshToken({
+        ...payload,
+        id: String(newRefreshToken.id),
+      });
+
+      res.cookie("accessToken", accessToken, {
+        sameSite: "strict",
+        maxAge: 1000 * 60 * 60 * 24 * 1,
+        httpOnly: true,
+      });
+
+      res.cookie("refreshToken", refreshToken, {
+        sameSite: "strict",
+        maxAge: 1000 * 60 * 60 * 24 * 365,
+        httpOnly: true,
+      });
+
+      this.logger.info("User has been logged in ", {
+        id: user.id,
+      });
+      res.json({ id: user.id });
+    } catch (err) {
+      next(err);
+    }
+  }
+  async self(req: AuthRequest, res: Response) {
+    // token req.auth.id
+    const user = await this.userService.findById(Number(req.auth.sub));
+    res.json({ ...user, password: undefined });
   }
 }
