@@ -1,4 +1,5 @@
 import { NextFunction, Response } from "express";
+import { validationResult } from "express-validator";
 import { JwtPayload } from "jsonwebtoken";
 import { Logger } from "winston";
 import { Roles } from "../constants";
@@ -14,6 +15,12 @@ export class AuthController {
   ) {}
 
   async register(req: RegisterUserRequest, res: Response, next: NextFunction) {
+    // validation
+    const result = validationResult(req);
+    if (!result.isEmpty()) {
+      return res.status(400).json({ errors: result.array() });
+    }
+
     const { firstName, lastName, email, password } = req.body;
 
     this.logger.debug("New request to register a user", {

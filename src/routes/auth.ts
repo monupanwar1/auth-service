@@ -11,6 +11,7 @@ import { RefreshToken } from "../entity/RefreshToken";
 import { User } from "../entity/User";
 import { TokenService } from "../services/TokenService";
 import { UserService } from "../services/UserService";
+import registerValidator from "../validators/register-validator";
 
 const router = express.Router();
 
@@ -22,7 +23,7 @@ const tokenService = new TokenService(refreshTokenRepository);
 
 const authController = new AuthController(userService, logger, tokenService);
 
-router.post("/register", (async (
+router.post("/register", registerValidator, (async (
   req: Request,
   res: Response,
   next: NextFunction,
