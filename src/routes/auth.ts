@@ -4,6 +4,7 @@ import express, {
   RequestHandler,
   Response,
 } from "express";
+import authenticate from "../common/middleware/authenticate";
 import { AppDataSource } from "../config/data-source";
 import logger from "../config/logger";
 import { AuthController } from "../controllers/AuthController";
@@ -12,6 +13,7 @@ import { User } from "../entity/User";
 import { CredentialService } from "../services/CredentialService";
 import { TokenService } from "../services/TokenService";
 import { UserService } from "../services/UserService";
+import { AuthRequest } from "../types";
 import loginValidator from "../validators/login-validator";
 import registerValidator from "../validators/register-validator";
 
@@ -46,5 +48,13 @@ router.post("/login", loginValidator, (async (
 ) => {
   await authController.login(req, res, next);
 }) as unknown as RequestHandler);
+
+router.get(
+  "/self",
+  authenticate as RequestHandler,
+  (async (req: Request, res: Response) => {
+    await authController.self(req as AuthRequest, res);
+  }) as unknown as RequestHandler,
+);
 
 export default router;

@@ -6,4 +6,5 @@ module.exports = {
   collectCoverage: true,
   coverageProvider: "v8",
   collectCoverageFrom: ["src/**/*.ts", "!tests/**", "!**/node_modules/**"],
+  // transformIgnorePatterns: ["node_modules/(?!.*(mock-jwks|msw|rettime))"],
 };

@@ -1,12 +1,12 @@
-import { expressjwt, GetVerificationKey } from "express-jwt";
 import { Request } from "express";
+import { expressjwt, GetVerificationKey } from "express-jwt";
 import jwksClient from "jwks-rsa";
-import config from "config";
+import { Config } from "../../config";
 import { AuthCookie } from "../../types";
 
 export default expressjwt({
   secret: jwksClient.expressJwtSecret({
-    jwksUri: config.get("auth.jwksUri"),
+    jwksUri: Config.JWKS_URI!,
     cache: true,
     rateLimit: true,
   }) as GetVerificationKey,
