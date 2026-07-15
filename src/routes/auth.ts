@@ -16,6 +16,8 @@ import { UserService } from "../services/UserService";
 import { AuthRequest } from "../types";
 import loginValidator from "../validators/login-validator";
 import registerValidator from "../validators/register-validator";
+import parseRefreshToken from "../common/middleware/parseRefreshToken";
+import validateRefreshToken from "../common/middleware/validateRefreshToken";
 
 const router = express.Router();
 
@@ -55,6 +57,29 @@ router.get(
   (async (req: Request, res: Response) => {
     await authController.self(req as AuthRequest, res);
   }) as unknown as RequestHandler,
+);
+
+router.post(
+  "/refresh",
+  validateRefreshToken as RequestHandler,
+  (req: Request, res: Response, next: NextFunction) =>
+    authController.refresh(
+      req as AuthRequest,
+      res,
+      next,
+    ) as unknown as RequestHandler,
+);
+
+router.post(
+  "/logout",
+  authenticate as RequestHandler,
+  parseRefreshToken as RequestHandler,
+  (req: Request, res: Response, next: NextFunction) =>
+    authController.logout(
+      req as AuthRequest,
+      res,
+      next,
+    ) as unknown as RequestHandler,
 );
 
 export default router;
