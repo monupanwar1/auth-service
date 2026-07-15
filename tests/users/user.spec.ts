@@ -97,7 +97,7 @@ describe("GET /auth/self", () => {
       );
     });
 
-    it("should return status code token does not exists", async () => {
+    it("should return status code 401 token does not exists", async () => {
       // Arrange
       const userData = {
         firstName: "kunal",
