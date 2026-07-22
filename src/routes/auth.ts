@@ -4,20 +4,21 @@ import express, {
   RequestHandler,
   Response,
 } from "express";
-import authenticate from "../common/middleware/authenticate";
 import { AppDataSource } from "../config/data-source";
 import logger from "../config/logger";
 import { AuthController } from "../controllers/AuthController";
 import { RefreshToken } from "../entity/RefreshToken";
 import { User } from "../entity/User";
-import { CredentialService } from "../services/CredentialService";
 import { TokenService } from "../services/TokenService";
 import { UserService } from "../services/UserService";
-import { AuthRequest } from "../types";
 import loginValidator from "../validators/login-validator";
 import registerValidator from "../validators/register-validator";
-import parseRefreshToken from "../common/middleware/parseRefreshToken";
+
+import { AuthRequest } from "../types";
+import authenticate from "../common/middleware/authenticate";
 import validateRefreshToken from "../common/middleware/validateRefreshToken";
+import parseRefreshToken from "../common/middleware/parseRefreshToken";
+import { CredentialService } from "../services/CredentialService";
 
 const router = express.Router();
 
@@ -26,6 +27,7 @@ const userService = new UserService(userRepository);
 
 const refreshTokenRepository = AppDataSource.getRepository(RefreshToken);
 const tokenService = new TokenService(refreshTokenRepository);
+
 const credentialService = new CredentialService();
 
 const authController = new AuthController(
@@ -43,20 +45,18 @@ router.post("/register", registerValidator, (async (
   await authController.register(req, res, next);
 }) as unknown as RequestHandler);
 
-router.post("/login", loginValidator, (async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  await authController.login(req, res, next);
-}) as unknown as RequestHandler);
+router.post(
+  "/login",
+  loginValidator,
+  (req: Request, res: Response, next: NextFunction) =>
+    authController.login(req, res, next) as unknown as RequestHandler,
+);
 
 router.get(
   "/self",
   authenticate as RequestHandler,
-  (async (req: Request, res: Response) => {
-    await authController.self(req as AuthRequest, res);
-  }) as unknown as RequestHandler,
+  (req: Request, res: Response) =>
+    authController.self(req as AuthRequest, res) as unknown as RequestHandler,
 );
 
 router.post(

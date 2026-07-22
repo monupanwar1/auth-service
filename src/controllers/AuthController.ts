@@ -227,6 +227,9 @@ export class AuthController {
 
       this.logger.info("RefreshToken has been deleted o", { id: req.auth.id });
       this.logger.info("User has been logged out", { id: req.auth.sub });
+      res.status(200).json({
+        message: "Logged out successfully",
+      });
     } catch (err) {
       next(err);
       return;

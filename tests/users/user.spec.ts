@@ -12,7 +12,7 @@ describe("GET /auth/self", () => {
   let jwks: ReturnType<typeof createJWKSMock>;
 
   beforeAll(async () => {
-    jwks = createJWKSMock("http://localhost:5501");
+    jwks = createJWKSMock("http://localhost:5000");
     connection = await AppDataSource.initialize();
   });
 
@@ -37,18 +37,18 @@ describe("GET /auth/self", () => {
         sub: "1",
         role: Roles.Customer,
       });
-      // act
+
+      // Act
       const response = await request(app)
         .get("/auth/self")
         .set("Cookie", [`accessToken=${accessToken}`])
         .send();
 
-      // assert
+      // Assert
       expect(response.statusCode).toBe(200);
     });
-
     it("should return the user data", async () => {
-      // arrange
+      // Arrange
       const userData = {
         firstName: "kunal",
         lastName: "p",
@@ -68,13 +68,13 @@ describe("GET /auth/self", () => {
         role: data.role,
       });
 
-      // act
+      // Act
       const response = await request(app)
         .get("/auth/self")
         .set("Cookie", `accessToken=${accessToken}`)
         .send();
 
-      // assert
+      // Assert
       expect(response.statusCode).toBe(200);
       expect(response.body.id).toBe(data.id);
     });
